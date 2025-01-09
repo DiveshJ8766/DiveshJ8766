@@ -1,7 +1,7 @@
 # 👋 Hi, I'm Divesh Vijay Jadhav!  
 
 🚀 **Application Engineer at Remiges | Full-Stack Developer | Freelancer**  
-🌏 Based in Nashik, India  
+🌏 Based in Navi Mumbai, India  
 
 [![GitHub Profile](https://img.shields.io/badge/-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/DiveshJ8766/)  
 [![LinkedIn Profile](https://img.shields.io/badge/-LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/diveshjadhav8766/)  
