@@ -67,15 +67,6 @@ A high-performance streaming UI built with **Next.js** and **Tailwind CSS**, fea
 
 ---
 
-## 📊 GitHub Analytics
-
-<p align="left">
-<img height="180em" src="https://github-readme-stats.vercel.app/api?username=DiveshJ8766&show_icons=true&theme=radical&include_all_commits=true&count_private=true" />
-<img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=DiveshJ8766&layout=compact&theme=radical" />
-</p>
-
----
-
 ## 📬 Let's Connect!
 
 *"Code is like humor. When you have to explain it, it’s bad."*
