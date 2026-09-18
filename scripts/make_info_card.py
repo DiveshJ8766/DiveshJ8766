@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Hand-authored neofetch-style info card, rendered as an animated SVG.
+
+Every row fades and slides in on a short stagger, so the card reads top to
+bottom like output scrolling out of a real terminal.
+"""
+from pathlib import Path
+
+from theme import (ACCENT, AMBER, BLUE, BORDER, DOT_AMBER, DOT_GREEN, DOT_RED,
+                   MAGENTA, MONO, MUTED, RED, TEXT, window_chrome)
+
+OUT = Path(__file__).resolve().parents[1] / "info-card.svg"
+
+W, H = 490, 480
+X_LABEL, X_VALUE = 16, 92
+LINE = 18.0
+START_Y = 74
+STEP = 0.075          # stagger between rows
+
+# (label, [(text, colour), ...]) - a row with an empty label is a continuation.
+ROWS = [
+    ("role",    [("Software Development Engineer", TEXT)]),
+    ("company", [("Zoca AI", ACCENT), (" · Navi Mumbai, India", MUTED)]),
+    ("prev",    [("Remiges", TEXT), ("  (BSE · CVL KRA)", MUTED)]),
+    ("uptime",  [("3+ years shipping production frontends", TEXT)]),
+    (None,      []),
+    ("core",    [("React", BLUE), (" · ", MUTED), ("TypeScript", BLUE), (" · ", MUTED),
+                 ("Redux", BLUE), (" · ", MUTED), ("TanStack Query", BLUE)]),
+    ("",        [("Node.js", BLUE), (" · ", MUTED), ("Express", BLUE), (" · ", MUTED),
+                 ("Tailwind", BLUE), (" · ", MUTED), ("Chart.js", BLUE)]),
+    ("perf",    [("code splitting · web workers · virtualised lists", MUTED)]),
+    ("quality", [("Jest · RTL · WCAG 2.1 AA · design systems", MUTED)]),
+    (None,      []),
+    ("ai",      [("authored custom Claude skills for the Zoca", TEXT)]),
+    ("",        [("design system → ", TEXT), ("40% faster feature dev", AMBER)]),
+    ("shipped", [("Stripe Terminal tap-to-pay checkout", TEXT)]),
+    ("",        [("waitlist → ", TEXT), ("+35% bookings", AMBER),
+                 (", ", MUTED), ("−80% idle slots", AMBER)]),
+    ("",        [("form builder → ", TEXT), ("−80% manual setup", AMBER)]),
+    ("wins",    [("−70% load · −60% API calls · −30% bundle", AMBER)]),
+    (None,      []),
+    ("labs",    [("Blockchain certificates", MAGENTA), (" (Solidity · IPFS)", MUTED)]),
+    ("",        [("StudyNotion", MAGENTA), (" MERN EdTech platform", MUTED)]),
+    (None,      []),
+    ("status",  [("open to opportunities", ACCENT)]),
+    ("contact", [("diveshjadhav72@gmail.com", BLUE)]),
+]
+
+
+def esc(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def main():
+    parts, y, i = [], START_Y, 0
+    for label, spans in ROWS:
+        if label is None:                      # blank spacer line
+            y += LINE * 0.45
+            continue
+        delay = round(0.35 + i * STEP, 3)
+        i += 1
+        if label:
+            parts.append(
+                f'<text class="row" x="{X_LABEL}" y="{y:.1f}" fill="{ACCENT}" '
+                f'style="animation-delay:{delay}s">{label}</text>'
+            )
+        tspans = "".join(f'<tspan fill="{c}">{esc(t)}</tspan>' for t, c in spans)
+        parts.append(
+            f'<text class="row" x="{X_VALUE}" y="{y:.1f}" '
+            f'style="animation-delay:{delay}s">{tspans}</text>'
+        )
+        y += LINE
+
+    dots = "".join(
+        f'<rect class="row" x="{X_LABEL + n * 17}" y="{H - 30}" width="13" height="9" rx="2" '
+        f'fill="{c}" style="animation-delay:{0.35 + i * STEP + 0.05 * n:.3f}s"/>'
+        for n, c in enumerate([DOT_RED, DOT_AMBER, DOT_GREEN, BLUE, MAGENTA, ACCENT, TEXT])
+    )
+
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}"
+     font-family="{MONO}" role="img" aria-label="About Divesh Jadhav">
+  <style>
+    text {{ font-family: {MONO}; font-size: 10.5px; fill: {TEXT}; }}
+    .row {{ opacity: 0; animation: slide .45s cubic-bezier(.2,.7,.3,1) both 1; }}
+    .head {{ font-size: 13px; font-weight: 700; }}
+    .cursor {{ animation: blink 1.1s steps(1) infinite; }}
+    @keyframes slide {{
+      from {{ opacity: 0; transform: translateX(-10px); }}
+      to   {{ opacity: 1; transform: translateX(0); }}
+    }}
+    @keyframes blink {{ 0%, 49% {{ opacity: 1 }} 50%, 100% {{ opacity: 0 }} }}
+    @media (prefers-reduced-motion: reduce) {{
+      .row, .cursor {{ animation: none !important; opacity: 1 !important; transform: none !important; }}
+    }}
+  </style>
+{window_chrome(W, H, "whoami — zsh")}
+  <text class="row head" x="{X_LABEL}" y="46" style="animation-delay:.1s">
+    <tspan fill="{ACCENT}">divesh</tspan><tspan fill="{MUTED}">@</tspan><tspan fill="{BLUE}">github</tspan>
+  </text>
+  <line class="row" x1="{X_LABEL}" y1="53" x2="{W - X_LABEL}" y2="53" stroke="{BORDER}"
+        style="animation-delay:.22s"/>
+{chr(10).join(parts)}
+{dots}
+  <text class="row" x="{X_LABEL}" y="{H - 12}" fill="{MUTED}" style="animation-delay:{0.35 + i * STEP + 0.4:.3f}s">
+    <tspan fill="{ACCENT}">$</tspan> <tspan class="cursor">▍</tspan>
+  </text>
+</svg>
+'''
+    OUT.write_text(svg)
+    print(f"wrote {OUT} ({len(svg)} bytes, {i} rows)")
+
+
+if __name__ == "__main__":
+    main()

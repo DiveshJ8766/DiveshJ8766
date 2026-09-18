@@ -1,0 +1,6 @@
+# One-time, local-only. Background removal + CLAHE are heavy (onnxruntime
+# pulls ~200MB), and the prepped portrait is committed, so CI never needs these.
+-r requirements.txt
+opencv-python-headless>=4.9
+rembg>=2.0.56
+onnxruntime>=1.17

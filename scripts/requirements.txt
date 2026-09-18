@@ -1,0 +1,6 @@
+# Runtime deps - what the GitHub Action installs on every run. Kept light
+# on purpose so the daily refresh finishes in well under a minute.
+requests==2.32.3
+beautifulsoup4==4.12.3
+pillow>=10.3
+numpy>=1.26
