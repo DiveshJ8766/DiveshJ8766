@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "contributions.json"
 OUT = ROOT / "contrib-heatmap.svg"
 
-W, H = 860, 246
-GRID_X, GRID_Y = 44, 84
+W, H = 860, 270
+GRID_X, GRID_Y = 50, 92
 CELL, GAP = 12, 3
 PITCH = CELL + GAP
 STEP = 0.011           # seconds of delay per diagonal step
@@ -78,15 +78,15 @@ def main():
     active = sum(1 for d in days if d["count"] > 0)
 
     months_svg = "".join(
-        f'<text class="fade" x="{x}" y="74" style="animation-delay:{d:.3f}s">{m}</text>'
+        f'<text class="fade" x="{x}" y="80" style="animation-delay:{d:.3f}s">{m}</text>'
         for x, m, d in month_ticks
     )
     day_svg = "".join(
-        f'<text class="fade dim" x="36" y="{GRID_Y + r * PITCH + 10}" text-anchor="end" '
+        f'<text class="fade dim" x="42" y="{GRID_Y + r * PITCH + 10}" text-anchor="end" '
         f'style="animation-delay:{r * STEP + 0.1:.3f}s">{lbl}</text>'
         for r, lbl in ((1, "Mon"), (3, "Wed"), (5, "Fri"))
     )
-    legend_x = W - 200
+    legend_x = W - 230
     legend = "".join(
         f'<rect class="c" x="{legend_x + 34 + i * PITCH}" y="{H - 30}" width="{CELL}" height="{CELL}" '
         f'rx="2.5" fill="{HEAT[i]}" style="animation-delay:{max_delay + 0.05 + i * 0.05:.3f}s"/>'
@@ -99,9 +99,9 @@ def main():
     text {{ font-family: {MONO}; }}
     .c {{ opacity: 0; transform-box: fill-box; transform-origin: center;
           animation: pop .45s ease-out both 1; }}
-    .fade {{ opacity: 0; font-size: 10px; fill: {MUTED};
+    .fade {{ opacity: 0; font-size: 12px; fill: {MUTED};
              animation: fade .5s ease-out both 1; }}
-    .dim {{ font-size: 9px; }}
+    .dim {{ font-size: 11px; }}
     .hot {{ animation: pop .45s ease-out both 1, glow 3.4s ease-in-out infinite; }}
     .cursor {{ animation: blink 1.1s steps(1) infinite; }}
     @keyframes pop {{
@@ -117,9 +117,9 @@ def main():
     }}
   </style>
 {window_chrome(W, H, f"{data['user']} — contributions.sh")}
-  <text class="fade" x="16" y="52" font-size="12.5" fill="{ACCENT}" style="animation-delay:.05s">$</text>
-  <text class="fade" x="30" y="52" font-size="12.5" fill="{TEXT}" style="animation-delay:.05s">git log --since=1.year --oneline | wc -l</text>
-  <text class="fade" x="{W - 16}" y="52" font-size="12.5" fill="{ACCENT}" text-anchor="end"
+  <text class="fade" x="16" y="56" font-size="15" fill="{ACCENT}" style="animation-delay:.05s">$</text>
+  <text class="fade" x="30" y="56" font-size="15" fill="{TEXT}" style="animation-delay:.05s">git log --since=1.year --oneline | wc -l</text>
+  <text class="fade" x="{W - 16}" y="56" font-size="15" fill="{ACCENT}" text-anchor="end"
         style="animation-delay:.6s">{data['total']} contributions</text>
 {months_svg}
 {day_svg}

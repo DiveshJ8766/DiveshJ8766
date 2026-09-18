@@ -78,7 +78,7 @@ Nothing here is a hosted widget. Three Python scripts emit three self-contained 
 | `scripts/fetch_contributions.py` | `data/contributions.json` | — scrapes the public contribution calendar, no token needed |
 | `scripts/render_heatmap_svg.py` | `contrib-heatmap.svg` | cells pop in on a diagonal wave; peak days keep a slow glow |
 | `scripts/make_info_card.py` | `info-card.svg` | neofetch rows slide in on a stagger |
-| `scripts/prep_photo.py` → `scripts/make_ascii_svg.py` | `divesh-ascii.svg` | each ASCII row wipes in left-to-right via a SMIL clip |
+| `scripts/make_ascii_svg.py` (from `assets/portrait.txt`) | `divesh-ascii.svg` | each ASCII row wipes in left-to-right via a SMIL clip |
 
 GitHub strips `<script>` and sanitises inline CSS in READMEs — but it renders SVG loaded through `<img>`, and CSS keyframes plus SMIL inside those SVGs run fine. That's the whole trick.
 
@@ -90,7 +90,7 @@ python scripts/fetch_contributions.py
 cd scripts && python render_heatmap_svg.py && python make_info_card.py && python make_ascii_svg.py
 ```
 
-The portrait only needs regenerating when the photo changes:
+The portrait grid is committed, so CI never touches it. To rebuild it from a different photo:
 
 ```bash
 pip install -r scripts/requirements-portrait.txt

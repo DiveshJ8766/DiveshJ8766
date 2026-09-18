@@ -11,10 +11,10 @@ from theme import (ACCENT, AMBER, BLUE, BORDER, DOT_AMBER, DOT_GREEN, DOT_RED,
 
 OUT = Path(__file__).resolve().parents[1] / "info-card.svg"
 
-W, H = 490, 480
-X_LABEL, X_VALUE = 16, 92
-LINE = 18.0
-START_Y = 74
+W, H = 490, 520
+X_LABEL, X_VALUE = 18, 104
+LINE = 21.0
+START_Y = 78
 STEP = 0.075          # stagger between rows
 
 # (label, [(text, colour), ...]) - a row with an empty label is a continuation.
@@ -80,9 +80,9 @@ def main():
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}"
      font-family="{MONO}" role="img" aria-label="About Divesh Jadhav">
   <style>
-    text {{ font-family: {MONO}; font-size: 10.5px; fill: {TEXT}; }}
+    text {{ font-family: {MONO}; font-size: 13px; fill: {TEXT}; }}
     .row {{ opacity: 0; animation: slide .45s cubic-bezier(.2,.7,.3,1) both 1; }}
-    .head {{ font-size: 13px; font-weight: 700; }}
+    .head {{ font-size: 16px; font-weight: 700; }}
     .cursor {{ animation: blink 1.1s steps(1) infinite; }}
     @keyframes slide {{
       from {{ opacity: 0; transform: translateX(-10px); }}
@@ -94,10 +94,10 @@ def main():
     }}
   </style>
 {window_chrome(W, H, "whoami — zsh")}
-  <text class="row head" x="{X_LABEL}" y="46" style="animation-delay:.1s">
+  <text class="row head" x="{X_LABEL}" y="50" style="animation-delay:.1s">
     <tspan fill="{ACCENT}">divesh</tspan><tspan fill="{MUTED}">@</tspan><tspan fill="{BLUE}">github</tspan>
   </text>
-  <line class="row" x1="{X_LABEL}" y1="53" x2="{W - X_LABEL}" y2="53" stroke="{BORDER}"
+  <line class="row" x1="{X_LABEL}" y1="58" x2="{W - X_LABEL}" y2="58" stroke="{BORDER}"
         style="animation-delay:.22s"/>
 {chr(10).join(parts)}
 {dots}
