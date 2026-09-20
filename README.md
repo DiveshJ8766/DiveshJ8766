@@ -1,11 +1,5 @@
 <div align="center">
 
-<h3><code>divesh@github ~ $ ./contributions.sh</code></h3>
-
-<img src="./contrib-heatmap.svg" width="860" alt="Contribution heatmap" />
-
-<br><br>
-
 <h3><code>divesh@github ~ $ whoami</code></h3>
 
 <table>
@@ -18,7 +12,6 @@
 [![Portfolio](https://img.shields.io/badge/portfolio-0d1117?style=for-the-badge&logo=vercel&logoColor=39d353&labelColor=0d1117)](https://projects-nine-woad.vercel.app/)
 [![LinkedIn](https://img.shields.io/badge/linkedin-0d1117?style=for-the-badge&logo=linkedin&logoColor=58a6ff&labelColor=0d1117)](https://linkedin.com/in/diveshjadhav8766)
 [![Email](https://img.shields.io/badge/email-0d1117?style=for-the-badge&logo=gmail&logoColor=ff7b72&labelColor=0d1117)](mailto:diveshjadhav72@gmail.com)
-[![Resume](https://img.shields.io/badge/resume-0d1117?style=for-the-badge&logo=readdotcv&logoColor=e3b341&labelColor=0d1117)](https://projects-nine-woad.vercel.app/)
 
 </div>
 
@@ -60,6 +53,18 @@
 
 ---
 
+<div align="center">
+
+<h3><code>divesh@github ~ $ ./contributions.sh</code></h3>
+
+<img src="./contrib-heatmap.svg" width="860" alt="Contribution heatmap" />
+
+<sub>Day job ships to private company repos, so this graph undercounts by a lot — the shipped work is in the panels above.</sub>
+
+</div>
+
+---
+
 <h3><code>divesh@github ~ $ cat status.txt</code></h3>
 
 > **Open to opportunities** — frontend / full-stack roles where performance, design systems and shipping quickly all matter.
@@ -95,8 +100,13 @@ The portrait grid is committed, so CI never touches it. To rebuild it from a dif
 ```bash
 pip install -r scripts/requirements-portrait.txt
 python scripts/prep_photo.py my-photo.jpg   # -> assets/portrait.png
+rm assets/portrait.txt                      # portrait.png then wins
 cd scripts && python make_ascii_svg.py
 ```
+
+`prep_photo.py` uses `rembg` when it's installed and otherwise keys out a flat
+studio backdrop in LAB space, so `pip install opencv-python-headless` alone is
+enough — pass `--no-rembg` to force the lighter path.
 
 Approach adapted from [Avi Vashishta's animated profile README guide](https://www.avivashishta.com/blog/build-animated-github-profile-readme.html).
 

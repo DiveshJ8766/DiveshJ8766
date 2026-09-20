@@ -26,7 +26,7 @@ OUT = ROOT / "divesh-ascii.svg"
 W, H = 370, 520
 PAD_X, TOP = 12, 42                 # drawing box sits below the 30px title bar
 BOX_W, BOX_H = W - 2 * PAD_X, H - TOP - 16
-COLS = 76
+COLS = 64
 MONO_ASPECT = 0.55                  # advance width / line height for a mono glyph
 CELL_W = BOX_W / COLS
 
@@ -70,16 +70,33 @@ def fallback_rows(rows):
 
 
 def to_rows(img, rows):
-    img = img.convert("L").resize((COLS, rows), Image.LANCZOS)
-    px = np.asarray(img, dtype=np.float32)
-    out = []
-    for y in range(rows):
-        line = "".join(
-            RAMP[int((255 - px[y, x]) / 255 * (len(RAMP) - 1) + 0.5)]
-            for x in range(COLS)
-        )
-        out.append(line.rstrip())
-    return out
+    """Downsample to the character grid, then quantise onto the density ramp.
+
+    Two things matter at 64x43. Unsharp-masking before the resize keeps the
+    eyes, nostrils and jawline from averaging away, and equalising the ink
+    histogram afterwards stops every mid-tone landing on the same glyph -
+    which is what makes a naive ramp render look like a grey blob.
+    """
+    img = img.convert("L")
+    img = Image.blend(img, img.filter(ImageFilter.UnsharpMask(2, 150, 3)), 0.85)
+    img = img.resize((COLS, rows), Image.LANCZOS)
+
+    ink = (255.0 - np.asarray(img, dtype=np.float32)) / 255.0   # 0 paper, 1 ink
+    subject = ink > 0.02
+    if subject.any():
+        vals = ink[subject]
+        # Rank-transform the subject's tones across the ramp's full span.
+        order = vals.argsort().argsort().astype(np.float32)
+        spread = np.empty_like(ink)
+        spread[subject] = 0.06 + 0.94 * (order / max(1, len(vals) - 1))
+        spread[~subject] = 0.0
+        ink = spread
+
+    top = len(RAMP) - 1
+    return [
+        "".join(RAMP[int(ink[y, x] * top + 0.5)] for x in range(COLS)).rstrip()
+        for y in range(rows)
+    ]
 
 
 def load_rows():
@@ -90,7 +107,7 @@ def load_rows():
         return rows, "portrait"
     if SRC_IMG.exists():
         img = Image.open(SRC_IMG)
-        rows = int(round(COLS * (CELL_W / (CELL_W / MONO_ASPECT)) / (img.width / img.height)))
+        rows = int(round(COLS * MONO_ASPECT / (img.width / img.height)))
         return to_rows(img, max(20, min(rows, 60))), "portrait"
     return fallback_rows(50), "placeholder"
 
