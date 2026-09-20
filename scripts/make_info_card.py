@@ -19,25 +19,29 @@ STEP = 0.075          # stagger between rows
 
 # (label, [(text, colour), ...]) - a row with an empty label is a continuation.
 ROWS = [
-    ("role",    [("Software Development Engineer", TEXT)]),
-    ("company", [("Zoca AI", ACCENT), (" · Navi Mumbai, India", MUTED)]),
-    ("prev",    [("Remiges", TEXT), ("  (BSE · CVL KRA)", MUTED)]),
+    ("role",    [("Software Development Engineer", ACCENT)]),
+    ("based",   [("Navi Mumbai, India", MUTED)]),
     ("uptime",  [("3+ years shipping production frontends", TEXT)]),
+    ("focus",   [("architecture", TEXT), (" · ", MUTED),
+                 ("design systems", TEXT), (" · ", MUTED), ("performance", TEXT)]),
     (None,      []),
     ("core",    [("React", BLUE), (" · ", MUTED), ("TypeScript", BLUE), (" · ", MUTED),
                  ("Redux", BLUE), (" · ", MUTED), ("TanStack Query", BLUE)]),
     ("",        [("Node.js", BLUE), (" · ", MUTED), ("Express", BLUE), (" · ", MUTED),
                  ("Tailwind", BLUE), (" · ", MUTED), ("Chart.js", BLUE)]),
-    ("perf",    [("code splitting · web workers · virtualised lists", MUTED)]),
-    ("quality", [("Jest · RTL · WCAG 2.1 AA · design systems", MUTED)]),
+    ("perf",    [("code splitting", TEXT), (" · ", MUTED), ("web workers", TEXT),
+                 (" · ", MUTED), ("virtual lists", TEXT)]),
+    ("quality", [("Jest", TEXT), (" · ", MUTED), ("RTL", TEXT), (" · ", MUTED),
+                 ("WCAG 2.1 AA", TEXT), (" · ", MUTED), ("design systems", TEXT)]),
     (None,      []),
-    ("ai",      [("authored custom Claude skills for the Zoca", TEXT)]),
-    ("",        [("design system → ", TEXT), ("40% faster feature dev", AMBER)]),
+    # The numbers used to live here too, which meant the impact panel and this
+    # card were repeating each other a scroll apart. Impact owns the figures
+    # now; this card names the work and keeps the identity.
+    ("ai",      [("authored custom Claude skills for our", TEXT)]),
+    ("",        [("design system, FTUX and PR review", TEXT)]),
     ("shipped", [("Stripe Terminal tap-to-pay checkout", TEXT)]),
-    ("",        [("waitlist → ", TEXT), ("+35% bookings", AMBER),
-                 (", ", MUTED), ("−80% idle slots", AMBER)]),
-    ("",        [("form builder → ", TEXT), ("−80% manual setup", AMBER)]),
-    ("wins",    [("−70% load · −60% API calls · −30% bundle", AMBER)]),
+    ("",        [("waitlist · form builder · RBAC", TEXT)]),
+    ("",        [("embedded Superset dashboards", TEXT)]),
     (None,      []),
     ("labs",    [("Blockchain certificates", MAGENTA), (" (Solidity · IPFS)", MUTED)]),
     ("",        [("StudyNotion", MAGENTA), (" MERN EdTech platform", MUTED)]),
@@ -72,7 +76,7 @@ def main():
         y += LINE
 
     dots = "".join(
-        f'<rect class="row" x="{X_LABEL + n * 17}" y="{H - 30}" width="13" height="9" rx="2" '
+        f'<rect class="row" x="{X_LABEL + n * 17}" y="{H - 34}" width="13" height="9" rx="2" '
         f'fill="{c}" style="animation-delay:{0.35 + i * STEP + 0.05 * n:.3f}s"/>'
         for n, c in enumerate([DOT_RED, DOT_AMBER, DOT_GREEN, BLUE, MAGENTA, ACCENT, TEXT])
     )

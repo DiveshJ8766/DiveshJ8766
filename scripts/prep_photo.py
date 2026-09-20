@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
 """Turn a raw headshot into something an ASCII ramp can actually read.
 
-  1. rembg strips the background so only the subject survives
-  2. the alpha mask is cropped to the subject's bounding box
-  3. CLAHE boosts local contrast, which is what stops faces turning into mush
-  4. the result is composited onto pure white and padded to the panel aspect
+The hard part is the mask. A ramp only has ~13 density steps, so any
+background that survives gets quantised into noise that reads as texture on
+the subject's shoulders. Two strategies, in order:
 
-Usage:  python scripts/prep_photo.py source-photo.jpg
+  1. rembg, if it happens to be installed (best on busy backgrounds)
+  2. flat-backdrop chroma key in LAB space - samples the border, keeps the
+     largest connected foreground blob, fills holes. This is what studio
+     headshots on a solid colour actually need, and it needs no 200MB model.
+
+Then CLAHE for local contrast (the thing that stops faces turning to mush),
+a percentile stretch across foreground pixels only, and a pad to the panel
+aspect so the ASCII grid isn't letterboxed.
+
+Usage:  python scripts/prep_photo.py source-photo.jpg [--no-rembg] [--no-crop]
 Output: assets/portrait.png
 """
 import sys
@@ -19,13 +27,108 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets" / "portrait.png"
 TARGET_ASPECT = 346 / 422      # must match make_ascii_svg.py's drawing box
-MARGIN = 0.06                  # breathing room around the subject
+MARGIN = 0.05                  # breathing room around the subject
+BORDER_FRAC = 0.045            # how much of each edge counts as "backdrop"
 
 
-def cutout(path):
+def cutout_rembg(path):
     from rembg import remove
-    img = Image.open(path).convert("RGBA")
-    return remove(img)
+    return remove(Image.open(path).convert("RGBA"))
+
+
+def cutout_chroma(path):
+    """Key out a flat backdrop: LAB distance from the dominant border colour."""
+    bgr = cv2.imread(str(path), cv2.IMREAD_COLOR)
+    if bgr is None:
+        raise SystemExit(f"could not decode {path}")
+    h, w = bgr.shape[:2]
+    lab = cv2.cvtColor(cv2.GaussianBlur(bgr, (5, 5), 0), cv2.COLOR_BGR2LAB)
+
+    b = max(2, int(round(min(h, w) * BORDER_FRAC)))
+    ring = np.concatenate([
+        lab[:b].reshape(-1, 3), lab[-b:].reshape(-1, 3),
+        lab[:, :b].reshape(-1, 3), lab[:, -b:].reshape(-1, 3),
+    ])
+    # Median over the ring, then re-median over pixels close to it, so a bit of
+    # subject bleeding into a corner doesn't drag the key colour off.
+    key = np.median(ring, axis=0)
+    d = np.linalg.norm(ring.astype(np.float32) - key, axis=1)
+    key = np.median(ring[d < max(12.0, np.percentile(d, 70))], axis=0)
+
+    # Chroma (a,b) separates a coloured backdrop from skin far better than L,
+    # which is why a plain grey-level threshold always eats the hair.
+    dist = np.linalg.norm(lab[:, :, 1:].astype(np.float32) - key[1:], axis=2)
+    dl = np.abs(lab[:, :, 0].astype(np.float32) - key[0])
+    thr = max(9.0, float(np.percentile(dist, 35)) + 7.0)
+    fg = ((dist > thr) | (dl > 55)).astype(np.uint8)
+
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    fg = cv2.morphologyEx(fg, cv2.MORPH_OPEN, k, iterations=1)
+    fg = cv2.morphologyEx(fg, cv2.MORPH_CLOSE, k, iterations=3)
+
+    n, lbl, stats, _ = cv2.connectedComponentsWithStats(fg, 8)
+    if n > 1:                                  # keep the biggest blob only
+        fg = (lbl == 1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])).astype(np.uint8)
+
+    holes = cv2.bitwise_not(fg * 255)          # fill anything enclosed by it
+    ff = holes.copy()
+    cv2.floodFill(ff, np.zeros((h + 2, w + 2), np.uint8), (0, 0), 0)
+    fg = np.maximum(fg * 255, ff)
+
+    alpha = cv2.GaussianBlur(fg, (0, 0), 1.2)
+    rgba = np.dstack([cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB), alpha])
+    return Image.fromarray(rgba, "RGBA")
+
+
+def cutout(path, allow_rembg=True):
+    if allow_rembg:
+        try:
+            print("mask: rembg")
+            return cutout_rembg(path)
+        except Exception as e:
+            print(f"mask: rembg unavailable ({e.__class__.__name__}), keying backdrop")
+    else:
+        print("mask: chroma key (rembg skipped)")
+    return cutout_chroma(path)
+
+
+def crop_head(rgba, scale=2.2, lift=0.68):
+    """Crop a full-length shot down to head-and-shoulders.
+
+    A seated full-body photo puts the face across maybe 18% of the frame
+    height; at 64 columns that is a four-character-wide face and no likeness
+    survives. Find the face, then take a box `scale` face-heights tall with
+    the head sitting `lift` face-heights below the top edge.
+    """
+    rgb = np.array(rgba)[:, :, :3]
+    casc = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    faces = casc.detectMultiScale(
+        cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY), 1.08, 6, minSize=(60, 60))
+    if len(faces) == 0:
+        print("crop: no face found, keeping full frame")
+        return rgba
+    fx, fy, fw, fh = max(faces, key=lambda f: f[2] * f[3])
+
+    box_h = fh * scale
+    box_w = box_h * TARGET_ASPECT
+    cy = fy - fh * lift
+    # Centre on the face horizontally, but let the mask's own centre of mass
+    # at chest height pull it over so an off-axis pose isn't clipped.
+    alpha = np.array(rgba)[:, :, 3]
+    chest = alpha[int(min(alpha.shape[0] - 1, fy + fh * 1.6)):
+                  int(min(alpha.shape[0], fy + fh * 2.6))]
+    cx = fx + fw / 2
+    if chest.size and (chest > 12).any():
+        xs = np.where((chest > 12).any(axis=0))[0]
+        cx = 0.45 * cx + 0.55 * ((xs.min() + xs.max()) / 2)
+
+    w, h = rgba.size
+    x0 = int(round(max(0, min(w - box_w, cx - box_w / 2))))
+    y0 = int(round(max(0, min(h - box_h, cy))))
+    print(f"crop: face {fw}x{fh} at ({fx},{fy}) -> box "
+          f"{int(box_w)}x{int(box_h)} at ({x0},{y0})")
+    return rgba.crop((x0, y0, int(round(x0 + box_w)), int(round(y0 + box_h))))
 
 
 def crop_to_subject(rgba):
@@ -34,21 +137,19 @@ def crop_to_subject(rgba):
     if len(xs) == 0:
         return rgba
     x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
-    pad_x = int((x1 - x0) * MARGIN)
-    pad_y = int((y1 - y0) * MARGIN)
+    pad_x, pad_y = int((x1 - x0) * MARGIN), int((y1 - y0) * MARGIN)
     w, h = rgba.size
-    box = (max(0, x0 - pad_x), max(0, y0 - pad_y),
-           min(w, x1 + pad_x), min(h, y1 + pad_y))
-    return rgba.crop(box)
+    return rgba.crop((max(0, x0 - pad_x), max(0, y0 - pad_y),
+                      min(w, x1 + pad_x), min(h, y1 + pad_y)))
 
 
 def pad_to_aspect(rgba):
     w, h = rgba.size
-    if w / h > TARGET_ASPECT:          # too wide -> add height
+    if w / h > TARGET_ASPECT:                  # too wide -> add height below
         new_h = int(round(w / TARGET_ASPECT))
         canvas = Image.new("RGBA", (w, new_h), (0, 0, 0, 0))
-        canvas.paste(rgba, (0, (new_h - h) // 2))
-    else:                              # too tall -> add width
+        canvas.paste(rgba, (0, 0))             # top-align: keeps the face high
+    else:                                      # too tall -> add width evenly
         new_w = int(round(h * TARGET_ASPECT))
         canvas = Image.new("RGBA", (new_w, h), (0, 0, 0, 0))
         canvas.paste(rgba, ((new_w - w) // 2, 0))
@@ -56,26 +157,42 @@ def pad_to_aspect(rgba):
 
 
 def boost_contrast(rgba):
+    """Flatten the subject onto white and calm its texture. No equalisation.
+
+    CLAHE and a percentile stretch were both wrong here, and in opposite
+    directions. CLAHE equalises locally, which destroys exactly the global
+    relationship a portrait lives on - dark hair against light skin against a
+    dark jumper. The stretch then mapped the brightest skin to pure white, so
+    the face came out as a hole in the middle of the grid.
+
+    Left alone, the photo's own luminance already lands where the ramp wants
+    it: skin near the light end, jumper mid, hair and beard at the dark end.
+    So the only work here is a bilateral blur, which kills knit texture that
+    would otherwise quantise into speckle while leaving the jawline and hair
+    edges sharp.
+    """
     white = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
-    flat = Image.alpha_composite(white, rgba).convert("L")
-    arr = np.array(flat)
-    clahe = cv2.createCLAHE(clipLimit=2.6, tileGridSize=(8, 8))
-    arr = clahe.apply(arr)
-    # Keep the removed background pure white so the ramp maps it to a space.
-    mask = np.array(rgba)[:, :, 3] < 12
-    arr[mask] = 255
+    arr = np.array(Image.alpha_composite(white, rgba).convert("L"))
+    mask = np.array(rgba)[:, :, 3] >= 12
+
+    arr = cv2.bilateralFilter(arr, 9, 60, 60)
+    arr[~mask] = 255                           # ramp maps pure white to a space
     return Image.fromarray(arr)
 
 
 def main():
-    if len(sys.argv) < 2:
-        raise SystemExit("usage: python scripts/prep_photo.py <photo>")
-    src = Path(sys.argv[1])
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if not args:
+        raise SystemExit("usage: python scripts/prep_photo.py <photo> "
+                         "[--no-rembg] [--no-crop]")
+    src = Path(args[0])
     if not src.exists():
         raise SystemExit(f"no such file: {src}")
 
-    rgba = pad_to_aspect(crop_to_subject(cutout(src)))
-    out = boost_contrast(rgba)
+    rgba = cutout(src, allow_rembg="--no-rembg" not in sys.argv[1:])
+    if "--no-crop" not in sys.argv[1:]:
+        rgba = crop_head(rgba)
+    out = boost_contrast(pad_to_aspect(crop_to_subject(rgba)))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     out.save(OUT)
     print(f"wrote {OUT} ({out.size[0]}x{out.size[1]})")
