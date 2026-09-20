@@ -47,6 +47,7 @@ jobs:
           python make_projects_panel.py
           python make_skills_panel.py
           python make_timeline_panel.py
+          python make_connect_panel.py
           python make_ascii_svg.py
 
       - uses: stefanzweifel/git-auto-commit-action@v5
@@ -59,4 +60,5 @@ jobs:
             projects-card.svg
             skills-card.svg
             timeline-card.svg
+            connect-card.svg
             divesh-ascii.svg
