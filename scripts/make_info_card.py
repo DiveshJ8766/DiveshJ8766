@@ -34,13 +34,14 @@ ROWS = [
     ("quality", [("Jest", TEXT), (" · ", MUTED), ("RTL", TEXT), (" · ", MUTED),
                  ("WCAG 2.1 AA", TEXT), (" · ", MUTED), ("design systems", TEXT)]),
     (None,      []),
-    ("ai",      [("authored custom Claude skills for our design", TEXT)]),
-    ("",        [("system and PR review → ", TEXT), ("40% faster feature dev", AMBER)]),
+    # The numbers used to live here too, which meant the impact panel and this
+    # card were repeating each other a scroll apart. Impact owns the figures
+    # now; this card names the work and keeps the identity.
+    ("ai",      [("authored custom Claude skills for our", TEXT)]),
+    ("",        [("design system, FTUX and PR review", TEXT)]),
     ("shipped", [("Stripe Terminal tap-to-pay checkout", TEXT)]),
-    ("",        [("waitlist → ", TEXT), ("+35% bookings", AMBER),
-                 (", ", MUTED), ("−80% idle slots", AMBER)]),
-    ("",        [("form builder → ", TEXT), ("−80% manual setup", AMBER)]),
-    ("wins",    [("−70% load · −60% API calls · −30% bundle", AMBER)]),
+    ("",        [("waitlist · form builder · RBAC", TEXT)]),
+    ("",        [("embedded Superset dashboards", TEXT)]),
     (None,      []),
     ("labs",    [("Blockchain certificates", MAGENTA), (" (Solidity · IPFS)", MUTED)]),
     ("",        [("StudyNotion", MAGENTA), (" MERN EdTech platform", MUTED)]),

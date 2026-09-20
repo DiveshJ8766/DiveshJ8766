@@ -17,6 +17,16 @@
 
 ---
 
+<div align="center">
+
+<h3><code>divesh@github ~ $ ./impact.sh</code></h3>
+
+<img src="./impact-card.svg" width="860" alt="Impact metrics" />
+
+</div>
+
+---
+
 <h3><code>divesh@github ~ $ cat experience.md</code></h3>
 
 **Software Development Engineer** · services booking & payments platform · *Apr 2026 — Present*
@@ -49,19 +59,7 @@
 | :-- | :-- | :-- | :-- |
 | 🔗 | **Blockchain Certificate Verification** | Decentralised certificate issuance and verification — Solidity contracts on an Ethereum testnet hold tamper-proof records for 100+ certificates, with MetaMask auth and automated issuance cutting manual effort by 80%. | `React` `Solidity` `IPFS` `Ethereum` `Tailwind` |
 | 🎓 | **StudyNotion — EdTech Platform** | Full-stack MERN learning platform with JWT auth, role-based instructor dashboards, Razorpay payments and Cloudinary media. | `MongoDB` `Express` `React` `Node` |
-| 🎨 | **This profile** | Every panel above is an SVG my own Python scripts generate, refreshed daily by a GitHub Action. No third-party stats widgets. | `Python` `SVG` `GitHub Actions` |
-
----
-
-<div align="center">
-
-<h3><code>divesh@github ~ $ ./contributions.sh</code></h3>
-
-<img src="./contrib-heatmap.svg" width="860" alt="Contribution heatmap" />
-
-<sub>Day job ships to private company repos, so this graph undercounts by a lot — the shipped work is in the panels above.</sub>
-
-</div>
+| 🎨 | **This profile** | Every panel here is an SVG my own Python scripts generate — the contribution graph re-renders daily from a GitHub Action. No third-party stats widgets. | `Python` `SVG` `GitHub Actions` |
 
 ---
 
@@ -76,15 +74,29 @@
 
 <br>
 
-Nothing here is a hosted widget. Three Python scripts emit three self-contained animated SVGs, and a GitHub Actions cron keeps them current:
+Nothing here is a hosted widget. A handful of Python scripts emit self-contained animated SVGs, and a GitHub Actions cron keeps the data-driven one current:
 
 | Script | Produces | Animation |
 | :-- | :-- | :-- |
 | `scripts/fetch_contributions.py` | `data/contributions.json` | — scrapes the public contribution calendar, no token needed |
 | `scripts/render_heatmap_svg.py` | `contrib-heatmap.svg` | cells pop in on a diagonal wave; peak days keep a slow glow |
 | `scripts/make_info_card.py` | `info-card.svg` | neofetch rows slide in on a stagger |
+| `scripts/make_impact_panel.py` | `impact-card.svg` | stat tiles rise on a stagger; the supporting line is width-checked at build time |
 | `scripts/make_photo_panel.py` | `divesh-photo.svg` | the headshot wipes in top-to-bottom; JPEG inlined as a data URI |
 | `scripts/make_ascii_svg.py` (from `assets/portrait.png`) | `divesh-ascii.svg` | each ASCII row wipes in left-to-right via a SMIL clip |
+
+The contribution graph lives down here rather than up top, and this is why:
+
+<div align="center">
+<img src="./contrib-heatmap.svg" width="760" alt="Contribution heatmap" />
+</div>
+
+Forty-nine contributions in a year is the true number for this account, and
+turning on "include private contributions" moved it by two. The day job ships
+to employer repos on other hosts, so those commits were never recorded here
+and no setting can retrieve them. A graph that undercounts the work by an
+order of magnitude does not belong above the numbers that do reflect it — but
+deleting it would be its own kind of dishonesty, so it stays, in context.
 
 The same portrait also renders as an ASCII grid, which is where this started:
 
@@ -105,7 +117,8 @@ Rebuild locally:
 ```bash
 pip install -r scripts/requirements.txt
 python scripts/fetch_contributions.py
-cd scripts && python render_heatmap_svg.py && python make_info_card.py && python make_ascii_svg.py
+cd scripts && python render_heatmap_svg.py && python make_info_card.py \
+  && python make_impact_panel.py && python make_ascii_svg.py
 ```
 
 The portrait grid is committed, so CI never touches it. To rebuild it from a different photo:
