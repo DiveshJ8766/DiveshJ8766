@@ -23,7 +23,7 @@ SRC_TXT = ROOT / "assets" / "portrait.txt"
 SRC_IMG = ROOT / "assets" / "portrait.png"
 OUT = ROOT / "divesh-ascii.svg"
 
-W, H = 370, 520
+W, H = 370, 560
 PAD_X, TOP = 12, 42                 # drawing box sits below the 30px title bar
 BOX_W, BOX_H = W - 2 * PAD_X, H - TOP - 16
 COLS = 64

@@ -11,7 +11,7 @@ from theme import (ACCENT, AMBER, BLUE, BORDER, DOT_AMBER, DOT_GREEN, DOT_RED,
 
 OUT = Path(__file__).resolve().parents[1] / "info-card.svg"
 
-W, H = 490, 520
+W, H = 490, 560
 X_LABEL, X_VALUE = 18, 104
 LINE = 21.0
 START_Y = 78
@@ -34,14 +34,17 @@ ROWS = [
     ("quality", [("Jest", TEXT), (" · ", MUTED), ("RTL", TEXT), (" · ", MUTED),
                  ("WCAG 2.1 AA", TEXT), (" · ", MUTED), ("design systems", TEXT)]),
     (None,      []),
-    # The numbers used to live here too, which meant the impact panel and this
-    # card were repeating each other a scroll apart. Impact owns the figures
-    # now; this card names the work and keeps the identity.
+    # This card is the only home for the figures again, so they come back with
+    # the amber treatment. Kept inside the 368px value column - see the
+    # width budget note in make_impact_panel's history if that ever regresses.
     ("ai",      [("authored custom Claude skills for our", TEXT)]),
-    ("",        [("design system, FTUX and PR review", TEXT)]),
+    ("",        [("design system → ", TEXT), ("40% faster feature dev", AMBER)]),
     ("shipped", [("Stripe Terminal tap-to-pay checkout", TEXT)]),
-    ("",        [("waitlist · form builder · RBAC", TEXT)]),
-    ("",        [("embedded Superset dashboards", TEXT)]),
+    ("",        [("waitlist → ", TEXT), ("+35% bookings", AMBER),
+                 (", ", MUTED), ("−80% idle slots", AMBER)]),
+    ("",        [("form builder → ", TEXT), ("−80% manual setup", AMBER)]),
+    ("wins",    [("−70% load · −60% API calls · −30% bundle", AMBER)]),
+    ("",        [("+40% test coverage · −80% UI freezes", AMBER)]),
     (None,      []),
     ("labs",    [("Blockchain certificates", MAGENTA), (" (Solidity · IPFS)", MUTED)]),
     ("",        [("StudyNotion", MAGENTA), (" MERN EdTech platform", MUTED)]),
@@ -75,8 +78,16 @@ def main():
         )
         y += LINE
 
+    strip_y = y + 6              # y is one line past the last row drawn
+    prompt_y = strip_y + 26
+    if prompt_y + 10 > H:
+        raise SystemExit(
+            f"card content needs {prompt_y + 10:.0f}px but the panel is {H}px — "
+            f"raise H (and the ascii panel's, so the pair still lines up) "
+            f"or drop a row")
+
     dots = "".join(
-        f'<rect class="row" x="{X_LABEL + n * 17}" y="{H - 34}" width="13" height="9" rx="2" '
+        f'<rect class="row" x="{X_LABEL + n * 17}" y="{strip_y:.1f}" width="13" height="9" rx="2" '
         f'fill="{c}" style="animation-delay:{0.35 + i * STEP + 0.05 * n:.3f}s"/>'
         for n, c in enumerate([DOT_RED, DOT_AMBER, DOT_GREEN, BLUE, MAGENTA, ACCENT, TEXT])
     )
@@ -105,7 +116,7 @@ def main():
         style="animation-delay:.22s"/>
 {chr(10).join(parts)}
 {dots}
-  <text class="row" x="{X_LABEL}" y="{H - 12}" fill="{MUTED}" style="animation-delay:{0.35 + i * STEP + 0.4:.3f}s">
+  <text class="row" x="{X_LABEL}" y="{prompt_y:.1f}" fill="{MUTED}" style="animation-delay:{0.35 + i * STEP + 0.4:.3f}s">
     <tspan fill="{ACCENT}">$</tspan> <tspan class="cursor">▍</tspan>
   </text>
 </svg>
