@@ -19,26 +19,26 @@
 
 <h3><code>divesh@github ~ $ cat experience.md</code></h3>
 
-**Software Development Engineer** · Zoca AI Private Limited · *Apr 2026 — Present*
+**Software Development Engineer** · services booking & payments platform · *Apr 2026 — Present*
 
-- Built **ZocaWeb** from an empty repo — frontend architecture, design system and release quality are mine to own.
+- Built the customer-facing web app from an empty repo — frontend architecture, design system and release quality are mine to own.
 - Authored custom **Claude AI skills** covering the design system, design patterns, FTUX and PR review, so generated code follows team conventions instead of fighting them — **40% faster feature development**.
 - Integrated **Stripe Terminal S710** and Bluetooth card readers into an end-to-end checkout, adding in-person card and Tap to Pay.
 - Shipped a **waitlist** that fills cancelled slots automatically — **+35% bookings, −80% idle appointment slots**.
 - Built a **form builder** for client intake forms and reusable service templates — **−80% manual setup time**.
 
-**Application Engineer** · Remiges Pvt. Ltd. *(Client: CVL KRA)* · *Sep 2025 — Mar 2026*
+**Application Engineer** · KYC registry platform · *Sep 2025 — Mar 2026*
 
 - Led frontend for a team of 4 — architecture, code quality, end-to-end delivery.
 - Designed application-wide **RBAC**, reusable form components, and embedded **Apache Superset** dashboards.
 - **−70% initial page load** via lazy loading and code splitting.
 
-**Application Engineer** · Remiges Pvt. Ltd. *(Client: BSE — Bombay Stock Exchange)* · *Jul 2023 — Aug 2025*
+**Application Engineer** · capital markets trading platform · *Jul 2023 — Aug 2025*
 
 - Reusable React + TypeScript components and dynamic forms with React Hook Form — **−35% development time**.
 - **−60% API calls**, **−30% bundle size** through lazy loading, code splitting and caching.
 - **Web Workers**, Service Workers and virtualised infinite scroll — **+40% load speed, −80% UI freezes**.
-- Real-time stock KPI dashboards with Chart.js across 5+ modules, to **WCAG 2.1 AA**.
+- Real-time market KPI dashboards with Chart.js across 5+ modules, to **WCAG 2.1 AA**.
 - **+40% unit test coverage** with Jest and React Testing Library.
 
 ---
