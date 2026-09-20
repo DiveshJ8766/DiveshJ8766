@@ -72,26 +72,17 @@ def fallback_rows(rows):
 def to_rows(img, rows):
     """Downsample to the character grid, then quantise onto the density ramp.
 
-    Two things matter at 64x43. Unsharp-masking before the resize keeps the
-    eyes, nostrils and jawline from averaging away, and equalising the ink
-    histogram afterwards stops every mid-tone landing on the same glyph -
-    which is what makes a naive ramp render look like a grey blob.
+    The mapping is deliberately linear. Any histogram trick - equalisation,
+    a percentile stretch, a rank transform - pushes the brightest skin off the
+    top of the ramp and the face renders as a hole. The photo's own tonal
+    spread already fits the ramp, so the only preprocessing is an unsharp mask
+    to keep eyes, nostrils and the jawline from averaging away at 64 columns.
     """
     img = img.convert("L")
-    img = Image.blend(img, img.filter(ImageFilter.UnsharpMask(2, 150, 3)), 0.85)
+    img = Image.blend(img, img.filter(ImageFilter.UnsharpMask(2, 110, 3)), 0.85)
     img = img.resize((COLS, rows), Image.LANCZOS)
 
     ink = (255.0 - np.asarray(img, dtype=np.float32)) / 255.0   # 0 paper, 1 ink
-    subject = ink > 0.02
-    if subject.any():
-        vals = ink[subject]
-        # Rank-transform the subject's tones across the ramp's full span.
-        order = vals.argsort().argsort().astype(np.float32)
-        spread = np.empty_like(ink)
-        spread[subject] = 0.06 + 0.94 * (order / max(1, len(vals) - 1))
-        spread[~subject] = 0.0
-        ink = spread
-
     top = len(RAMP) - 1
     return [
         "".join(RAMP[int(ink[y, x] * top + 0.5)] for x in range(COLS)).rstrip()

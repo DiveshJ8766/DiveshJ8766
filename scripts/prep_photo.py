@@ -14,7 +14,7 @@ Then CLAHE for local contrast (the thing that stops faces turning to mush),
 a percentile stretch across foreground pixels only, and a pad to the panel
 aspect so the ASCII grid isn't letterboxed.
 
-Usage:  python scripts/prep_photo.py source-photo.jpg [--no-rembg]
+Usage:  python scripts/prep_photo.py source-photo.jpg [--no-rembg] [--no-crop]
 Output: assets/portrait.png
 """
 import sys
@@ -92,6 +92,45 @@ def cutout(path, allow_rembg=True):
     return cutout_chroma(path)
 
 
+def crop_head(rgba, scale=2.2, lift=0.68):
+    """Crop a full-length shot down to head-and-shoulders.
+
+    A seated full-body photo puts the face across maybe 18% of the frame
+    height; at 64 columns that is a four-character-wide face and no likeness
+    survives. Find the face, then take a box `scale` face-heights tall with
+    the head sitting `lift` face-heights below the top edge.
+    """
+    rgb = np.array(rgba)[:, :, :3]
+    casc = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    faces = casc.detectMultiScale(
+        cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY), 1.08, 6, minSize=(60, 60))
+    if len(faces) == 0:
+        print("crop: no face found, keeping full frame")
+        return rgba
+    fx, fy, fw, fh = max(faces, key=lambda f: f[2] * f[3])
+
+    box_h = fh * scale
+    box_w = box_h * TARGET_ASPECT
+    cy = fy - fh * lift
+    # Centre on the face horizontally, but let the mask's own centre of mass
+    # at chest height pull it over so an off-axis pose isn't clipped.
+    alpha = np.array(rgba)[:, :, 3]
+    chest = alpha[int(min(alpha.shape[0] - 1, fy + fh * 1.6)):
+                  int(min(alpha.shape[0], fy + fh * 2.6))]
+    cx = fx + fw / 2
+    if chest.size and (chest > 12).any():
+        xs = np.where((chest > 12).any(axis=0))[0]
+        cx = 0.45 * cx + 0.55 * ((xs.min() + xs.max()) / 2)
+
+    w, h = rgba.size
+    x0 = int(round(max(0, min(w - box_w, cx - box_w / 2))))
+    y0 = int(round(max(0, min(h - box_h, cy))))
+    print(f"crop: face {fw}x{fh} at ({fx},{fy}) -> box "
+          f"{int(box_w)}x{int(box_h)} at ({x0},{y0})")
+    return rgba.crop((x0, y0, int(round(x0 + box_w)), int(round(y0 + box_h))))
+
+
 def crop_to_subject(rgba):
     alpha = np.array(rgba)[:, :, 3]
     ys, xs = np.where(alpha > 12)
@@ -118,22 +157,25 @@ def pad_to_aspect(rgba):
 
 
 def boost_contrast(rgba):
+    """Flatten the subject onto white and calm its texture. No equalisation.
+
+    CLAHE and a percentile stretch were both wrong here, and in opposite
+    directions. CLAHE equalises locally, which destroys exactly the global
+    relationship a portrait lives on - dark hair against light skin against a
+    dark jumper. The stretch then mapped the brightest skin to pure white, so
+    the face came out as a hole in the middle of the grid.
+
+    Left alone, the photo's own luminance already lands where the ramp wants
+    it: skin near the light end, jumper mid, hair and beard at the dark end.
+    So the only work here is a bilateral blur, which kills knit texture that
+    would otherwise quantise into speckle while leaving the jawline and hair
+    edges sharp.
+    """
     white = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
-    flat = Image.alpha_composite(white, rgba).convert("L")
-    arr = np.array(flat)
-    mask = np.array(rgba)[:, :, 3] >= 12       # subject pixels
+    arr = np.array(Image.alpha_composite(white, rgba).convert("L"))
+    mask = np.array(rgba)[:, :, 3] >= 12
 
-    arr = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8)).apply(arr)
-
-    # Stretch across the subject only. Done over the whole frame the white
-    # background pins the top of the range and the face stays flat.
-    if mask.any():
-        lo, hi = np.percentile(arr[mask], (2, 98))
-        if hi > lo:
-            f = arr.astype(np.float32)
-            f = np.clip((f - lo) * 255.0 / (hi - lo), 0, 255)
-            arr = f.astype(np.uint8)
-
+    arr = cv2.bilateralFilter(arr, 9, 60, 60)
     arr[~mask] = 255                           # ramp maps pure white to a space
     return Image.fromarray(arr)
 
@@ -141,12 +183,15 @@ def boost_contrast(rgba):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
-        raise SystemExit("usage: python scripts/prep_photo.py <photo> [--no-rembg]")
+        raise SystemExit("usage: python scripts/prep_photo.py <photo> "
+                         "[--no-rembg] [--no-crop]")
     src = Path(args[0])
     if not src.exists():
         raise SystemExit(f"no such file: {src}")
 
     rgba = cutout(src, allow_rembg="--no-rembg" not in sys.argv[1:])
+    if "--no-crop" not in sys.argv[1:]:
+        rgba = crop_head(rgba)
     out = boost_contrast(pad_to_aspect(crop_to_subject(rgba)))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     out.save(OUT)

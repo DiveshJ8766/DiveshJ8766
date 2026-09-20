@@ -4,7 +4,7 @@
 
 <table>
 <tr>
-<td valign="top"><img src="./divesh-ascii.svg" width="370" alt="ASCII portrait" /></td>
+<td valign="top"><img src="./divesh-photo.svg" width="370" alt="Divesh Jadhav" /></td>
 <td valign="top"><img src="./info-card.svg" width="490" alt="About Divesh Jadhav" /></td>
 </tr>
 </table>
@@ -83,7 +83,20 @@ Nothing here is a hosted widget. Three Python scripts emit three self-contained 
 | `scripts/fetch_contributions.py` | `data/contributions.json` | — scrapes the public contribution calendar, no token needed |
 | `scripts/render_heatmap_svg.py` | `contrib-heatmap.svg` | cells pop in on a diagonal wave; peak days keep a slow glow |
 | `scripts/make_info_card.py` | `info-card.svg` | neofetch rows slide in on a stagger |
-| `scripts/make_ascii_svg.py` (from `assets/portrait.txt`) | `divesh-ascii.svg` | each ASCII row wipes in left-to-right via a SMIL clip |
+| `scripts/make_photo_panel.py` | `divesh-photo.svg` | the headshot wipes in top-to-bottom; JPEG inlined as a data URI |
+| `scripts/make_ascii_svg.py` (from `assets/portrait.png`) | `divesh-ascii.svg` | each ASCII row wipes in left-to-right via a SMIL clip |
+
+The same portrait also renders as an ASCII grid, which is where this started:
+
+<div align="center">
+<img src="./divesh-ascii.svg" width="300" alt="ASCII portrait" />
+</div>
+
+A 370px panel needs roughly 6px per glyph to stay legible, which caps the grid
+at 64 columns — about 2,700 characters across a 13-step density ramp. Enough to
+read as a person, not enough to be a likeness, so the panel up top uses the
+photograph and this stays a demo. Letter ramps (`DIVESH`) are worse again:
+every glyph carries similar ink, so the tonal range collapses.
 
 GitHub strips `<script>` and sanitises inline CSS in READMEs — but it renders SVG loaded through `<img>`, and CSS keyframes plus SMIL inside those SVGs run fine. That's the whole trick.
 
@@ -99,8 +112,8 @@ The portrait grid is committed, so CI never touches it. To rebuild it from a dif
 
 ```bash
 pip install -r scripts/requirements-portrait.txt
-python scripts/prep_photo.py my-photo.jpg   # -> assets/portrait.png
-rm assets/portrait.txt                      # portrait.png then wins
+python scripts/prep_photo.py my-photo.jpg        # -> assets/portrait.png
+python scripts/make_photo_panel.py my-photo.jpg  # -> divesh-photo.svg
 cd scripts && python make_ascii_svg.py
 ```
 

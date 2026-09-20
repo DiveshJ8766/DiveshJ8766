@@ -19,10 +19,11 @@ STEP = 0.075          # stagger between rows
 
 # (label, [(text, colour), ...]) - a row with an empty label is a continuation.
 ROWS = [
-    ("role",    [("Software Development Engineer", TEXT)]),
-    ("company", [("Zoca AI", ACCENT), (" · Navi Mumbai, India", MUTED)]),
-    ("prev",    [("Remiges", TEXT), ("  (BSE · CVL KRA)", MUTED)]),
+    ("role",    [("Software Development Engineer", ACCENT)]),
+    ("based",   [("Navi Mumbai, India", MUTED)]),
     ("uptime",  [("3+ years shipping production frontends", TEXT)]),
+    ("focus",   [("architecture", TEXT), (" · ", MUTED),
+                 ("design systems", TEXT), (" · ", MUTED), ("performance", TEXT)]),
     (None,      []),
     ("core",    [("React", BLUE), (" · ", MUTED), ("TypeScript", BLUE), (" · ", MUTED),
                  ("Redux", BLUE), (" · ", MUTED), ("TanStack Query", BLUE)]),
@@ -33,8 +34,8 @@ ROWS = [
     ("quality", [("Jest", TEXT), (" · ", MUTED), ("RTL", TEXT), (" · ", MUTED),
                  ("WCAG 2.1 AA", TEXT), (" · ", MUTED), ("design systems", TEXT)]),
     (None,      []),
-    ("ai",      [("authored custom Claude skills for the Zoca", TEXT)]),
-    ("",        [("design system → ", TEXT), ("40% faster feature dev", AMBER)]),
+    ("ai",      [("authored custom Claude skills for our design", TEXT)]),
+    ("",        [("system and PR review → ", TEXT), ("40% faster feature dev", AMBER)]),
     ("shipped", [("Stripe Terminal tap-to-pay checkout", TEXT)]),
     ("",        [("waitlist → ", TEXT), ("+35% bookings", AMBER),
                  (", ", MUTED), ("−80% idle slots", AMBER)]),
