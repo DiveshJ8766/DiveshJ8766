@@ -56,9 +56,9 @@
   </g>
   <g class="row" style="animation-delay:0.48s">
     <rect x="302.0" y="84" width="256.0" height="196" rx="8" fill="#0f141b" stroke="#30363d"/>
-    <rect x="302.0" y="84" width="3" height="196" rx="1.5" fill="#bc8cff"/>
+    <rect x="302.0" y="84" width="3" height="196" rx="1.5" fill="#e3b341"/>
     <text class="idx" x="316.0" y="108">02</text>
-    <text class="ttl" x="316.0" y="130.0" fill="#bc8cff">StudyNotion EdTech</text>
+    <text class="ttl" x="316.0" y="130.0" fill="#e3b341">StudyNotion EdTech</text>
     <text class="dsc" x="316.0" y="174.0">Full-stack MERN learning</text>
     <text class="dsc" x="316.0" y="189.5">platform. JWT auth, instructor</text>
     <text class="dsc" x="316.0" y="205.0">dashboards, Razorpay payments.</text>
@@ -73,9 +73,9 @@
   </g>
   <g class="row" style="animation-delay:0.61s">
     <rect x="580.0" y="84" width="256.0" height="196" rx="8" fill="#0f141b" stroke="#30363d"/>
-    <rect x="580.0" y="84" width="3" height="196" rx="1.5" fill="#39d353"/>
+    <rect x="580.0" y="84" width="3" height="196" rx="1.5" fill="#bc8cff"/>
     <text class="idx" x="594.0" y="108">03</text>
-    <text class="ttl" x="594.0" y="130.0" fill="#39d353">This profile</text>
+    <text class="ttl" x="594.0" y="130.0" fill="#bc8cff">This profile</text>
     <text class="dsc" x="594.0" y="174.0">Every panel is an SVG my own</text>
     <text class="dsc" x="594.0" y="189.5">Python scripts generate,</text>
     <text class="dsc" x="594.0" y="205.0">re-rendered daily by a GitHub</text>

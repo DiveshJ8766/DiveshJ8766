@@ -45,6 +45,8 @@ jobs:
           python render_heatmap_svg.py
           python make_info_card.py
           python make_projects_panel.py
+          python make_skills_panel.py
+          python make_timeline_panel.py
           python make_ascii_svg.py
 
       - uses: stefanzweifel/git-auto-commit-action@v5
@@ -55,4 +57,6 @@ jobs:
             contrib-heatmap.svg
             info-card.svg
             projects-card.svg
+            skills-card.svg
+            timeline-card.svg
             divesh-ascii.svg

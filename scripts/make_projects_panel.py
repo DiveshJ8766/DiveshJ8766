@@ -9,11 +9,18 @@ SVG has no text wrapping, so every description is wrapped here against a
 measured character budget and the script fails if a card overflows its box
 rather than letting a line run past the border. That check is the whole
 reason this is generated instead of hand-written.
+
+The accent hues are blue / amber / purple rather than blue / purple / green.
+The latter failed a CVD check - blue and purple sit DeltaE 2.7 apart under
+deuteranopia and 13.2 under normal vision, below the hard floor, so two of
+three cards were near-identical for some readers. This triple clears it at
+27.1 (protan) and 29.6 (normal). Every card is also directly titled, so hue
+is reinforcement here, never the only cue.
 """
 from pathlib import Path
 
-from theme import (ACCENT, BLUE, BORDER, MAGENTA, MONO, MUTED, PANEL, TEXT,
-                   window_chrome)
+from theme import (ACCENT, AMBER, BLUE, BORDER, MAGENTA, MONO, MUTED, PANEL,
+                   TEXT, window_chrome)
 
 OUT = Path(__file__).resolve().parents[1] / "projects-card.svg"
 
@@ -40,11 +47,11 @@ PROJECTS = [
      "Tamper-proof issuance and verification. Solidity contracts on an "
      "Ethereum testnet, MetaMask auth, 100+ records.",
      ["React", "Solidity", "IPFS", "Ethereum"]),
-    ("02", "StudyNotion EdTech", MAGENTA,
+    ("02", "StudyNotion EdTech", AMBER,
      "Full-stack MERN learning platform. JWT auth, instructor dashboards, "
      "Razorpay payments.",
      ["MongoDB", "Express", "React", "Node"]),
-    ("03", "This profile", ACCENT,
+    ("03", "This profile", MAGENTA,
      "Every panel is an SVG my own Python scripts generate, re-rendered "
      "daily by a GitHub Action.",
      ["Python", "SVG", "Actions"]),
